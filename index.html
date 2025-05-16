@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Simulador de Empréstimo</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.8.1/nouislider.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.8.1/nouislider.min.css" />
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -19,7 +19,7 @@
       background: #fff;
       padding: 30px;
       border-radius: 10px;
-      max-width: 450px;
+      max-width: 480px;
       width: 100%;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
@@ -30,29 +30,85 @@
       color: #222;
     }
 
-    label {
+    .slider-group {
+      margin-bottom: 30px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .slider-header span.label {
       font-weight: 600;
-      margin-top: 15px;
+      text-transform: uppercase;
+    }
+
+    .slider-header span.value {
+      font-size: 1.3em;
+      font-weight: bold;
+    }
+
+    .noUi-target {
+      background: #e6edf5;
+      border-radius: 10px;
+      border: none;
+      height: 10px;
+    }
+
+    .noUi-connect {
+      background: #1c7c54;
+      border-radius: 10px;
+    }
+
+    .noUi-handle {
+      height: 24px;
+      width: 24px;
+      background: white;
+      border: 2px solid #1c7c54;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .frequencia-section {
+      margin-bottom: 25px;
+    }
+
+    .frequencia-section .label {
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 8px;
       display: block;
     }
 
-    input, select {
-      width: 100%;
+    .frequencia-buttons {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .frequencia-buttons button {
+      flex: 1;
+      margin-right: 10px;
       padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      margin-top: 5px;
-      box-sizing: border-box;
       font-size: 16px;
+      border: 1px solid #ccc;
+      background-color: #f0f0f0;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.2s;
     }
 
-    .slider-label {
-      margin-top: 20px;
-      font-size: 15px;
+    .frequencia-buttons button:last-child {
+      margin-right: 0;
     }
 
-    #slider-prazo {
-      margin-top: 20px; /* Mais espaço acima do slider */
+    .frequencia-buttons button.active {
+      background-color: #1c7c54;
+      color: white;
+      border-color: #1c7c54;
     }
 
     .resultado {
@@ -86,17 +142,29 @@
   <div class="container">
     <h2>Simulador de Empréstimo</h2>
 
-    <label for="montante">Montante pretendido (€) <small>(máx. 1000€)</small>:</label>
-    <input type="number" id="montante" min="0" max="1000" value="500">
+    <div class="frequencia-section">
+      <span class="label">Frequência de Pagamento</span>
+      <div class="frequencia-buttons">
+        <button id="btn-diario" class="active">Diário</button>
+        <button id="btn-semanal">Semanal</button>
+      </div>
+    </div>
 
-    <label for="frequencia">Frequência de pagamento:</label>
-    <select id="frequencia">
-      <option value="diario">Diário</option>
-      <option value="semanal">Semanal</option>
-    </select>
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="label">Montante</span>
+        <span class="value" id="montante-valor">500€</span>
+      </div>
+      <div id="montante-slider"></div>
+    </div>
 
-    <label class="slider-label" id="prazo-label">Prazo do empréstimo (dias): <span id="prazo-valor">21</span></label>
-    <div id="slider-prazo"></div>
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="label">Prazo</span>
+        <span class="value" id="prazo-valor">3 semanas</span>
+      </div>
+      <div id="prazo-slider"></div>
+    </div>
 
     <div class="resultado" id="resultado">Valor da prestação: €0</div>
 
@@ -105,62 +173,87 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.8.1/nouislider.min.js"></script>
   <script>
-    const montanteInput = document.getElementById("montante");
-    const frequenciaInput = document.getElementById("frequencia");
-    const prazoLabel = document.getElementById("prazo-label");
-    const prazoValor = document.getElementById("prazo-valor");
+    const btnDiario = document.getElementById("btn-diario");
+    const btnSemanal = document.getElementById("btn-semanal");
     const resultadoDiv = document.getElementById("resultado");
     const whatsappLink = document.getElementById("whatsapp-link");
-    const sliderPrazo = document.getElementById("slider-prazo");
+    const montanteValor = document.getElementById("montante-valor");
+    const prazoValor = document.getElementById("prazo-valor");
 
-    noUiSlider.create(sliderPrazo, {
+    let frequencia = "diario";
+
+    const montanteSlider = document.getElementById("montante-slider");
+    const prazoSlider = document.getElementById("prazo-slider");
+
+    noUiSlider.create(montanteSlider, {
+      start: 500,
+      step: 50,
+      range: {
+        min: 200,
+        max: 1000
+      },
+      tooltips: false,
+      connect: [true, false]
+    });
+
+    noUiSlider.create(prazoSlider, {
       start: 3,
       step: 1,
       range: {
         min: 1,
         max: 6
       },
-      tooltips: false
+      tooltips: false,
+      connect: [true, false]
     });
 
-    function atualizarSimulacao(semanas = parseInt(sliderPrazo.noUiSlider.get())) {
-      let montante = parseFloat(montanteInput.value);
-      if (montante > 1000) {
-        montante = 1000;
-        montanteInput.value = 1000;
-      }
-
-      const frequencia = frequenciaInput.value;
+    function atualizarSimulacao() {
+      const montante = parseFloat(montanteSlider.noUiSlider.get());
+      const semanas = parseInt(prazoSlider.noUiSlider.get());
       const dias = semanas * 7;
-      const jurosTotais = montante * 0.01 * dias;
-      const total = montante + jurosTotais;
+
+      montanteValor.textContent = `${montante.toFixed(0)}€`;
+      prazoValor.textContent = `${semanas} semanas`;
+
+      const juros = montante * 0.01 * dias;
+      const total = montante + juros;
 
       let numPrestacoes, unidade;
 
       if (frequencia === "diario") {
         numPrestacoes = dias;
         unidade = "dia";
-        prazoLabel.innerHTML = `Prazo do empréstimo (dias): <span id="prazo-valor">${dias}</span>`;
       } else {
         numPrestacoes = semanas;
         unidade = "semana";
-        prazoLabel.innerHTML = `Prazo do empréstimo (semanas): <span id="prazo-valor">${semanas}</span>`;
       }
 
       const prestacao = Math.round(total / numPrestacoes);
       resultadoDiv.textContent = `Valor da prestação: €${prestacao} por ${unidade}`;
 
-      const mensagem = `Olá! Estou interessado num empréstimo de €${Math.round(montante)} com pagamentos ${frequencia}, durante ${frequencia === 'diario' ? dias + ' dias' : semanas + ' semanas'}.\nNúmero de prestações: ${numPrestacoes}x de €${prestacao}.`;
+      const mensagem = `Olá! Estou interessado num empréstimo de €${Math.round(montante)} com pagamentos ${frequencia}, durante ${frequencia === 'diario' ? dias + ' dias' : semanas + ' semanas'}.
+Número de prestações: ${numPrestacoes}x de €${prestacao}.`;
 
       whatsappLink.href = `https://wa.me/351931646394?text=${encodeURIComponent(mensagem)}`;
     }
 
-    // Eventos
-    montanteInput.addEventListener("input", () => atualizarSimulacao());
-    frequenciaInput.addEventListener("change", () => atualizarSimulacao());
-    sliderPrazo.noUiSlider.on("update", () => atualizarSimulacao());
+    btnDiario.addEventListener("click", () => {
+      frequencia = "diario";
+      btnDiario.classList.add("active");
+      btnSemanal.classList.remove("active");
+      atualizarSimulacao();
+    });
 
-    // Inicializar simulação com valores por defeito
+    btnSemanal.addEventListener("click", () => {
+      frequencia = "semanal";
+      btnSemanal.classList.add("active");
+      btnDiario.classList.remove("active");
+      atualizarSimulacao();
+    });
+
+    montanteSlider.noUiSlider.on("update", atualizarSimulacao);
+    prazoSlider.noUiSlider.on("update", atualizarSimulacao);
+
     atualizarSimulacao();
   </script>
 </body>
