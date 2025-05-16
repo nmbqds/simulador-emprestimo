@@ -213,25 +213,27 @@
       const dias = semanas * 7;
 
       montanteValor.textContent = `${montante.toFixed(0)}€`;
-      prazoValor.textContent = `${semanas} semanas`;
 
-      const juros = montante * 0.01 * dias;
-      const total = montante + juros;
-
-      let numPrestacoes, unidade;
+      let numPrestacoes, unidade, periodoTexto;
 
       if (frequencia === "diario") {
         numPrestacoes = dias;
         unidade = "dia";
+        periodoTexto = `${dias} dias`;
       } else {
         numPrestacoes = semanas;
         unidade = "semana";
+        periodoTexto = `${semanas} semanas`;
       }
 
+      prazoValor.textContent = periodoTexto;
+
+      const juros = montante * 0.01 * dias;
+      const total = montante + juros;
       const prestacao = Math.round(total / numPrestacoes);
       resultadoDiv.textContent = `Valor da prestação: €${prestacao} por ${unidade}`;
 
-      const mensagem = `Olá! Estou interessado num empréstimo de €${Math.round(montante)} com pagamentos ${frequencia}, durante ${frequencia === 'diario' ? dias + ' dias' : semanas + ' semanas'}.
+      const mensagem = `Olá! Estou interessado num empréstimo de €${Math.round(montante)} com pagamentos ${frequencia}, durante ${periodoTexto}.
 Número de prestações: ${numPrestacoes}x de €${prestacao}.`;
 
       whatsappLink.href = `https://wa.me/351931646394?text=${encodeURIComponent(mensagem)}`;
