@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulador de Empréstimo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.8.1/nouislider.min.css">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #f7f9fc;
       color: #333;
       padding: 20px;
-      margin: 0;
       display: flex;
       justify-content: center;
     }
@@ -46,13 +46,13 @@
       font-size: 16px;
     }
 
-    input[type="range"] {
-      padding: 0;
+    .slider-label {
+      margin-top: 20px;
+      font-size: 15px;
     }
 
-    .slider-label {
-      margin-top: 10px;
-      font-size: 15px;
+    #slider-prazo {
+      margin-top: 20px; /* Mais espaço acima do slider */
     }
 
     .resultado {
@@ -80,12 +80,6 @@
     .btn-whatsapp:hover {
       background-color: #1ebe5d;
     }
-
-    @media (max-width: 500px) {
-      .container {
-        padding: 20px;
-      }
-    }
   </style>
 </head>
 <body>
@@ -93,7 +87,7 @@
     <h2>Simulador de Empréstimo</h2>
 
     <label for="montante">Montante pretendido (€) <small>(máx. 1000€)</small>:</label>
-    <input type="number" id="montante" min="0" max="1000" step="1" value="500" />
+    <input type="number" id="montante" min="0" max="1000" value="500">
 
     <label for="frequencia">Frequência de pagamento:</label>
     <select id="frequencia">
@@ -101,40 +95,47 @@
       <option value="semanal">Semanal</option>
     </select>
 
-    <label class="slider-label" for="prazo" id="prazo-label">Prazo do empréstimo (dias): <span id="prazo-valor">21</span></label>
-    <input type="range" id="prazo" min="1" max="6" value="3" />
+    <label class="slider-label" id="prazo-label">Prazo do empréstimo (dias): <span id="prazo-valor">21</span></label>
+    <div id="slider-prazo"></div>
 
     <div class="resultado" id="resultado">Valor da prestação: €0</div>
 
     <a href="#" target="_blank" class="btn-whatsapp" id="whatsapp-link">Solicitar agora via WhatsApp</a>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.8.1/nouislider.min.js"></script>
   <script>
     const montanteInput = document.getElementById("montante");
     const frequenciaInput = document.getElementById("frequencia");
-    const prazoInput = document.getElementById("prazo");
     const prazoLabel = document.getElementById("prazo-label");
     const prazoValor = document.getElementById("prazo-valor");
     const resultadoDiv = document.getElementById("resultado");
     const whatsappLink = document.getElementById("whatsapp-link");
+    const sliderPrazo = document.getElementById("slider-prazo");
 
-    function atualizarSimulacao() {
+    noUiSlider.create(sliderPrazo, {
+      start: 3,
+      step: 1,
+      range: {
+        min: 1,
+        max: 6
+      },
+      tooltips: false
+    });
+
+    function atualizarSimulacao(semanas = parseInt(sliderPrazo.noUiSlider.get())) {
       let montante = parseFloat(montanteInput.value);
-
-      // Validação: limitar máximo a 1000
       if (montante > 1000) {
         montante = 1000;
         montanteInput.value = 1000;
       }
 
       const frequencia = frequenciaInput.value;
-      const semanas = parseInt(prazoInput.value);
       const dias = semanas * 7;
       const jurosTotais = montante * 0.01 * dias;
       const total = montante + jurosTotais;
 
-      let numPrestacoes;
-      let unidade;
+      let numPrestacoes, unidade;
 
       if (frequencia === "diario") {
         numPrestacoes = dias;
@@ -154,11 +155,12 @@
       whatsappLink.href = `https://wa.me/351931646394?text=${encodeURIComponent(mensagem)}`;
     }
 
-    montanteInput.addEventListener("input", atualizarSimulacao);
-    frequenciaInput.addEventListener("change", atualizarSimulacao);
-    prazoInput.addEventListener("input", atualizarSimulacao);
+    // Eventos
+    montanteInput.addEventListener("input", () => atualizarSimulacao());
+    frequenciaInput.addEventListener("change", () => atualizarSimulacao());
+    sliderPrazo.noUiSlider.on("update", () => atualizarSimulacao());
 
-    // Iniciar com valores por defeito
+    // Inicializar simulação com valores por defeito
     atualizarSimulacao();
   </script>
 </body>
