@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Simulador de Empréstimo</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f7f9fc;
+      color: #333;
+      padding: 20px;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 450px;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #222;
+    }
+
+    label {
+      font-weight: 600;
+      margin-top: 15px;
+      display: block;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-top: 5px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    input[type="range"] {
+      padding: 0;
+    }
+
+    .slider-label {
+      margin-top: 10px;
+      font-size: 15px;
+    }
+
+    .resultado {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 1.3em;
+      text-align: center;
+      color: #1c7c54;
+    }
+
+    .btn-whatsapp {
+      margin-top: 25px;
+      display: block;
+      text-align: center;
+      background-color: #25D366;
+      color: white;
+      padding: 14px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .btn-whatsapp:hover {
+      background-color: #1ebe5d;
+    }
+
+    @media (max-width: 500px) {
+      .container {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Simulador de Empréstimo</h2>
+
+    <label for="montante">Montante pretendido (€) <small>(máx. 1000€)</small>:</label>
+    <input type="number" id="montante" min="0" max="1000" step="1" value="500" />
+
+    <label for="frequencia">Frequência de pagamento:</label>
+    <select id="frequencia">
+      <option value="diario">Diário</option>
+      <option value="semanal">Semanal</option>
+    </select>
+
+    <label class="slider-label" for="prazo" id="prazo-label">Prazo do empréstimo (dias): <span id="prazo-valor">21</span></label>
+    <input type="range" id="prazo" min="1" max="6" value="3" />
+
+    <div class="resultado" id="resultado">Valor da prestação: €0</div>
+
+    <a href="#" target="_blank" class="btn-whatsapp" id="whatsapp-link">Solicitar agora via WhatsApp</a>
+  </div>
+
+  <script>
+    const montanteInput = document.getElementById("montante");
+    const frequenciaInput = document.getElementById("frequencia");
+    const prazoInput = document.getElementById("prazo");
+    const prazoLabel = document.getElementById("prazo-label");
+    const prazoValor = document.getElementById("prazo-valor");
+    const resultadoDiv = document.getElementById("resultado");
+    const whatsappLink = document.getElementById("whatsapp-link");
+
+    function atualizarSimulacao() {
+      let montante = parseFloat(montanteInput.value);
+
+      // Validação: limitar máximo a 1000
+      if (montante > 1000) {
+        montante = 1000;
+        montanteInput.value = 1000;
+      }
+
+      const frequencia = frequenciaInput.value;
+      const semanas = parseInt(prazoInput.value);
+      const dias = semanas * 7;
+      const jurosTotais = montante * 0.01 * dias;
+      const total = montante + jurosTotais;
+
+      let numPrestacoes;
+      let unidade;
+
+      if (frequencia === "diario") {
+        numPrestacoes = dias;
+        unidade = "dia";
+        prazoLabel.innerHTML = `Prazo do empréstimo (dias): <span id="prazo-valor">${dias}</span>`;
+      } else {
+        numPrestacoes = semanas;
+        unidade = "semana";
+        prazoLabel.innerHTML = `Prazo do empréstimo (semanas): <span id="prazo-valor">${semanas}</span>`;
+      }
+
+      const prestacao = Math.round(total / numPrestacoes);
+      resultadoDiv.textContent = `Valor da prestação: €${prestacao} por ${unidade}`;
+
+      const mensagem = `Olá! Estou interessado num empréstimo de €${Math.round(montante)} com pagamentos ${frequencia}, durante ${frequencia === 'diario' ? dias + ' dias' : semanas + ' semanas'}.\nNúmero de prestações: ${numPrestacoes}x de €${prestacao}.`;
+
+      whatsappLink.href = `https://wa.me/351918114093?text=${encodeURIComponent(mensagem)}`;
+    }
+
+    montanteInput.addEventListener("input", atualizarSimulacao);
+    frequenciaInput.addEventListener("change", atualizarSimulacao);
+    prazoInput.addEventListener("input", atualizarSimulacao);
+
+    // Iniciar com valores por defeito
+    atualizarSimulacao();
+  </script>
+</body>
+</html>
